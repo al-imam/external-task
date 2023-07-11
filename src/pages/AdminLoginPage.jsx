@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import MkdSDK from "../utils/MkdSDK";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../authContext";
+import { showToast, GlobalContext } from "../globalContext";
 
 const AdminLoginPage = () => {
   const schema = yup
@@ -15,6 +16,7 @@ const AdminLoginPage = () => {
     .required();
 
   const { dispatch } = React.useContext(AuthContext);
+  const global = useContext(GlobalContext);
   const navigate = useNavigate();
   const {
     register,
@@ -27,7 +29,18 @@ const AdminLoginPage = () => {
 
   const onSubmit = async (data) => {
     let sdk = new MkdSDK();
-    //TODO
+    try {
+      const user = await sdk.login(data.email, data.password, "admin");
+      showToast(global.dispatch, "Admin login successful!");
+      dispatch({
+        type: "LOGIN",
+        user: user.user_id,
+        role: user.role,
+        token: user.token,
+      });
+    } catch (e) {
+      console.warn(e);
+    }
   };
 
   return (
